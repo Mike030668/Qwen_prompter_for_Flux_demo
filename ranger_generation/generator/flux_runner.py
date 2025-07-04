@@ -1,59 +1,80 @@
-"""
-Unified wrapper for Black-Forest FLUX models.
-• loads model to CPU once
-• moves to GPU only for inference
-• adapts batch-size to free VRAM
-"""
+# ranger_generation/generator/flux_runner.py
 from __future__ import annotations
-import torch, gc
+import random
+from typing import List, Optional
 from pathlib import Path
-from typing import List, Dict
+import torch
 from diffusers import FluxPipeline, DPMSolverMultistepScheduler
+from PIL import Image
 
-# ─── choose a checkpoint that fits your GPU ──────────────────────────────
-#FLUX_ID = "black-forest-labs/FLUX.1-schnell"   # dev ≈14 GB, schnell ≈8 GB, tiny ≈5 GB
-FLUX_ID = "Freepik/flux.1-lite-8B-alpha"
-DTYPE   = torch.float16                        # bf16 also works
+# ─── Настройки модели ────────────────────────────────────────────────────────
+# ─── путь к уже скачанной модели ─────────────────────────────────────────
+LOCAL_FLUX_CACHE = (
+    Path.home()
+    / ".cache" / "huggingface" / "hub"
+    / "models--Freepik--flux.1-lite-8B-alpha"
+)
+# FLUX_ID = "Freepik/flux.1-lite-8B-alpha"
+FLUX_ID = str(LOCAL_FLUX_CACHE) if LOCAL_FLUX_CACHE.exists() else "Freepik/flux.1-lite-8B-alpha"
+ 
+DTYPE   = torch.float16  # bf16 тоже можно
 
-# ─── one-time loading on import (weights stay on CPU) ────────────────────
+# ─── Загрузка пайплайна один раз при импорте (веса остаются на CPU) ──────────
 pipe = FluxPipeline.from_pretrained(
     FLUX_ID,
     torch_dtype=DTYPE,
-    #device_map="auto",                         # автоматический CPU-offload
-    scheduler=DPMSolverMultistepScheduler.from_pretrained(FLUX_ID, subfolder="scheduler")
+    local_files_only=True,
+    device_map="balanced",  # auto не поддерживается, используем balanced
+    scheduler=DPMSolverMultistepScheduler.from_pretrained(
+        FLUX_ID,
+        subfolder="scheduler"
+    )
 )
-pipe.enable_model_cpu_offload()          # ↓ keeps GPU clean
-pipe.enable_xformers_memory_efficient_attention()
 
-def _gpu_free_mb() -> int:
-    free, _ = torch.cuda.mem_get_info()
-    return free // 2**20
+# Переключаем на offload → модель выгружается на CPU, на GPU попадают только нужные блоки
+pipe.reset_device_map()
+pipe.enable_model_cpu_offload()
 
-def generate_flux(prompt: Dict, seeds: List[int]):
+# Опционально включаем xformers-ускорение, если есть
+try:
+    pipe.enable_xformers_memory_efficient_attention()
+except ModuleNotFoundError:
+    # xformers не установлен — просто пропускаем
+    pass
+
+
+def generate_flux(
+    prompt: str,
+    num_images: int = 1,
+    width: int = 512,
+    height: int = 512,
+    steps: int = 30,
+    scale: float = 7.5,
+    seed: Optional[int] = None,
+) -> List[Image.Image]:
     """
-    prompt = {positive, negative, params{width,height,cfg,steps}}
-    seeds  = [int,…]  — any length, will be split into chunks
-    returns list[PIL.Image]
+    Генерирует `num_images` картинок по `prompt`.
+    Если seed не указан — используется случайный для каждой.
+    Возвращает список PIL.Image.
     """
-    images, chunk_start = [], 0
-    est_per_image = 1200 if "schnell" in FLUX_ID else 1800  # MB heuristic
-    while chunk_start < len(seeds):
-        batch_sz = max(1, min(4, _gpu_free_mb() // est_per_image))
-        batch = seeds[chunk_start:chunk_start + batch_sz]
-        gens  = [torch.Generator(device="cuda").manual_seed(s) for s in batch]
+    results: List[Image.Image] = []
+    for i in range(num_images):
+        # каждый раз новый генератор, чтобы получить разные картинки
+        gen_seed = seed if seed is not None else random.randrange(2**32)
+        generator = torch.Generator(device="cuda").manual_seed(gen_seed)
 
-        pipe.to("cuda")
-        imgs = pipe(
-            prompt=prompt["positive"],
-            negative_prompt=prompt["negative"],
-            width = prompt["params"]["width"],
-            height= prompt["params"]["height"],
-            guidance_scale = prompt["params"]["cfg"],
-            num_inference_steps = prompt["params"]["steps"],
-            generator = gens,
-        ).images
-        pipe.to("cpu"); torch.cuda.empty_cache(); gc.collect()
+        output = pipe(
+            prompt,
+            num_images_per_prompt=1,
+            width=width,
+            height=height,
+            num_inference_steps=steps,
+            guidance_scale=scale,
+            generator=generator,
+        )
+        results.append(output.images[0])
 
-        images.extend(imgs)
-        chunk_start += batch_sz
-    return images
+        # очистка GPU-кэша между запросами (опционально)
+        torch.cuda.empty_cache()
+
+    return results
