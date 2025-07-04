@@ -90,6 +90,29 @@ accelerate launch train_lora.py \
 
 ```
 
+
+## 6 Как подключить ваш LoRA-адаптер
+Подготовьте или обучите LoRA-веса (например, через ai-toolkit и train_lora_flux_24gb.yaml).
+
+Положите my_lora.safetensors куда угодно на диск.
+
+Перед запуском демо-скрипта установите переменную окружения:
+
+bash
+Копировать
+Редактировать
+export FLUX_LORA_PATH=/путь/к/my_lora.safetensors
+Запускайте:
+
+bash
+Копировать
+Редактировать
+python scripts/demo_flux.py "Ваш запрос" \
+  --num_images 4 --width 512 --height 512 --steps 15 --scale 7.5 \
+  --output my_out.png
+— в результате LoRA-адаптер автоматически загрузится в FluxPipeline.
+
+
 ---
 
 ### Next steps
