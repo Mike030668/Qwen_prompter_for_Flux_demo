@@ -1,0 +1,56 @@
+# rules/common.yaml
+id: common
+category: common          # зарезервированная метка для root-правил
+
+# --- 1. Global negative prompt ---------------------------------------------
+# Общие «стоп-слова», которые добавляются к каждому запросу,
+# если объект / стиль не прописали другое.
+global_negative:
+  - "lowres"
+  - "blurry"
+  - "out of focus"
+  - "grainy"
+  - "washed out colours"
+  - "poor contrast"
+  - "jpeg artefacts"
+  - "watermark"
+  - "signature"
+  - "text"
+  - "logo"
+  - "frame"
+  - "border"
+  - "extra limbs"
+  - "extra fingers"
+  - "missing fingers"
+  - "bad anatomy"
+  - "mutated anatomy"
+  - "disfigured"
+  - "poorly drawn"
+  - "duplicate"
+  - "error"
+  - "cropped"
+  - "out of frame"
+  - "ugly"
+  - "low quality"
+  - "nsfw"
+  - "nudity"
+  - "gore"
+  - "violence"
+
+# --- 2. Default generation parameters --------------------------------------
+# Подойдут для Flux v1: вертикальный портрет, высокое качество, 4 шагa.
+default_params:
+  width:   1024        # px
+  height:  1536        # px
+  cfg:     7.5         # guidance scale
+  steps:   4           # diffusion steps
+  sampler: "ddim"      # можно заменить в дочерних правилах
+
+# --- 3. Service information -------------------------------------------------
+notes: |
+  This file acts as a global safety net:
+  – Every positive/negative prompt assembled by Qwen-Prompter starts with
+    these tokens unless overridden.
+  – Default parameters are tuned for a typical Flux portrait render.
+  Update the lists cautiously: adding too many negatives may oversuppress
+  creativity, while removing core artefact tokens can degrade output quality.

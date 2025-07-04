@@ -1,0 +1,151 @@
+# rules/objects/sbercat/sbercat.yaml
+id: sbercat
+category: object
+
+synonyms:
+  - Sbercat
+  - Sber-cat
+  - Sber Cat
+  - "Сберкот"
+
+# ===== Prompt helpers =====
+positive_boost:
+  - "cute grey cartoon cat mascot in a green hoodie"
+  - "big friendly smile, large expressive green eyes"
+  - "official Sber corporate palette #00B140"
+  - "front paws with four fingers, no claws"
+  - "hind paws with three toes, no claws"
+  - "no visible seams on the single white tooth block"
+
+negative_boost:
+  - "off-brand bank mascots or competitor logos"
+  - "wrong hoodie colour, wrong eye colour"
+  - "extra limbs or fingers, distorted anatomy"
+  - "text, watermark, blur, JPEG artefacts"
+
+#params:
+#  width: 1024
+#  height: 1536
+# cfg: 7.5            # guidance scale
+
+# ===== Detailed reference rules (for future use) =====
+detailed_rules:
+  fur:
+    text: |
+      ### 1. Fur
+      - Body / muzzle length: 1 cm
+      - Tufts (forelock, cheeks): 5 cm
+      - Whiskers: 10–13 cm
+    colour_palette:
+      primary:
+        hex: CACAC8
+        cmyk: [0, 0, 12, 1]
+        ral: 7035
+
+  eyes:
+    text: |
+      ### 2. Eyes
+      - Colour: green (HEX A35E6D, CMYK [0, 55, 19, 40], RAL 6037)
+      - Pupils: black, > 50 % of eye width
+      - Outline: thin black line
+    features:
+      reflectivity: realistic
+      openness: iris fully visible
+
+  ears:
+    text: |
+      ### 3. Ears
+      - Shape: rounded, slightly raised
+      - Inner area: pink (HEX CD97F, CMYK [0, 35, 15, 20], RAL 4003)
+
+  nose:
+    text: |
+      ### 4. Nose
+      - Shape: small, round
+      - Colour: pink (HEX B9A8C, CMYK [22, 20, 31], RAL 3012)
+
+  brows:
+    text: |
+      ### 5. Brows
+      - Shape: short, thin, slightly curved
+      - Colour: dark grey (HEX 41414C, CMYK [22, 18, 0, 8], RAL 9004)
+
+  hoodie:
+    text: |
+      ### 6. Hoodie
+      - Colour: green (HEX 42B660, CMYK [75, 0, 80], RAL 6038)
+
+  mouth_and_teeth:
+    text: |
+      ### 7. Mouth & Teeth
+      - Mouth: rounded, interior light-pink (HEX FFC0CB)
+      - Teeth: single white block (HEX FFFFFF) without gaps
+
+proportions:
+  profile_view:
+    head: 0.88K
+    arms: 0.36K
+    legs: 0.51K
+    tail: 0.21K
+    torso: 0.79K
+  front_view:
+    head: 0.88K
+    arms: 0.36K
+    legs: 0.44K
+    shoulders: 0.77K
+    hips: 0.714K
+    torso: 0.79K
+  general:
+    full_height: "65 cm (1.0K)"
+    limb_detail: |
+      - Front paws: 4 fingers, 2 phalanges, no claws
+      - Hind paws: 3 fingers, no claws
+
+composition_rules:
+  focus:
+    text: "Sbercat must be the main element; use size, colour, and position to emphasise it."
+  rule_of_thirds:
+    text: "Divide the frame into thirds; place the mascot on the intersection points."
+  balance:
+    text: "Consider logo, text, and background; distribute elements for visual balance."
+  direction:
+    text: "Sbercat looks or moves into the frame; leave leading space in front."
+
+posing_rules:
+  full:
+    text: "Full-body: entire silhouette; slight cropping of feet or head is acceptable."
+  half:
+    text: "Half-figure: crop just below chest or above hips; avoid cutting joints."
+  portrait:
+    text: "Close-up: focus on face; crop below shoulders / above top of head."
+
+format_guidelines:
+  vertical:
+    text: "Place mascot centre or top; reserve space for text at the bottom."
+  horizontal:
+    text: "Mascot on one side; free space for text / logo on the other."
+  square:
+    text: "Focus in centre; should remain recognisable on small screens."
+
+cropping_rules:
+  head_legs:
+    text: "Head or legs may be cropped naturally (e.g. below the knees)."
+  hands:
+    text: "Ensure finger tips and accessories are not unnaturally cut."
+
+lighting:
+  indoor:
+    text: "Mind lamp type, diffusion, and time of day / season."
+  outdoor:
+    text: "Depends on time of day, cloudiness, and season."
+  sources:
+    text: "Consider directional & LED sources, plus reflections."
+
+# ===== Example folders =====
+examples:
+  good: "images/good/"      # place good references here
+  bad:  "images/bad/"       # place wrong examples here
+
+notes: |
+  Reduced to what matters for prompt construction while keeping rich
+  reference blocks for future validation or fine-grained scoring.

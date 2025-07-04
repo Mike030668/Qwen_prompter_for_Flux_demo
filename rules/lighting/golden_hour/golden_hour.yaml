@@ -1,0 +1,32 @@
+id: golden_hour
+category: lighting
+
+synonyms:
+  - golden hour
+  - sunset light
+  - warm sunset glow
+  - "закатный свет"
+  - "тёплый золотой час"
+
+positive_boost:
+  - "soft warm golden-hour lighting"
+  - "long gentle shadows"
+  - "sun-kissed highlights"
+  - "low-angle sunlight"
+
+negative_boost:
+  - "no harsh midday sunlight"
+  - "no cold fluorescent light"
+  - "no studio strobe flash"
+  - "no overexposed sky"
+
+params: {}            # при желании можно задать особый CFG / steps
+
+examples:
+  good: "images/good/"
+  bad:  "images/bad/"
+
+notes: |
+  Use when the scene should look like it was shot shortly after sunrise
+  or before sunset. Adds warm tones and discourages cold or artificial
+  light sources.

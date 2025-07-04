@@ -1,0 +1,33 @@
+id: cinematic_photo
+category: style
+
+synonyms:
+  - cinematic photo
+  - cinematic look
+  - film still
+  - "киношный стиль"
+  - "кинематографичный"
+
+positive_boost:
+  - "cinematic, film-like colour grading"
+  - "shallow depth of field, bokeh"
+  - "high dynamic range"
+  - "shot on a 50 mm lens"
+
+negative_boost:
+  - "no oversaturated colours"
+  - "no comic or cartoon style"
+  - "no flat lighting"
+  - "no heavy grain"
+
+params:
+  cfg: 8.0            # чуть более жёсткое следование промпту
+
+examples:
+  good: "images/good/"
+  bad:  "images/bad/"
+
+notes: |
+  Encourages a photographic, movie-still aesthetic with pleasing bokeh
+  and balanced colour grading. Pairs well with golden-hour lighting and
+  front-view rules.

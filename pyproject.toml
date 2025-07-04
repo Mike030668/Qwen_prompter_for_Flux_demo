@@ -1,0 +1,15 @@
+[project]
+name = "ranger_generation"
+version = "0.1.0"
+description = "Prompt → Flux → SigLIP2 pipeline"
+authors = [{ name = "Your Name" }]
+readme = "README.md"
+requires-python = ">=3.10"
+
+[build-system]
+requires = ["setuptools>=65", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["ranger_generation", "ranger_generation.prompter"]
+include-package-data = true            # оставит PEP 517-данные, если нужно

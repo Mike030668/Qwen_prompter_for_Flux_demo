@@ -1,0 +1,36 @@
+# rules/viewpoint/front_view/front_view.yaml
+id: front_view
+category: viewpoint
+
+synonyms:
+  - front view
+  - head-on
+  - straight-on
+  - full-face
+  - "анфас"
+
+# === Prompt helpers ========================================================
+positive_boost:
+  - "shot from a straight-on perspective"
+  - "subject centered and facing the camera"
+  - "symmetrical frontal composition"
+
+negative_boost:
+  - "no top-down (bird's-eye) angle"
+  - "no low-angle (worm's-eye) shot"
+  - "no side profile"
+  - "no tilted or Dutch angle"
+  - "no face obstruction"
+
+# Переопределять параметры генерации здесь необязательно, но поле оставлено
+# на случай, если хочется задать, например, более узкую глубину резкости.
+params: {}
+
+# Папки с эталонными изображениями (вы добавите файлы сами)
+examples:
+  good: "images/good/"
+  bad:  "images/bad/"
+
+notes: |
+  Use this rule when a direct, eye-level shot is required. Adds phrasing
+  to enforce a straight-on viewpoint and blocks undesired camera angles.
