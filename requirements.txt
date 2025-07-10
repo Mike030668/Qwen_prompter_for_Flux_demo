@@ -1,21 +1,27 @@
---extra-index-url https://download.pytorch.org/whl/cu121
-
+# --- CUDA-зависимые пакеты ---
+--extra-index-url https://download.pytorch.org/whl/cu121     # колесо Torch cu121
 torch==2.3.0+cu121
 torchvision==0.18.0+cu121
-numpy==1.26.4
 
-# Prompting…
-transformers==4.53.0
-sentencepiece>=0.2.0
-auto-gptq==0.7.1
-peft==0.10.0
+numpy==1.26.4           # версия из Colab GPU
+
+# --- Hugging Face стек ---
+# ↓ если используете dev-ветку, подставьте полученный commit-hash
+transformers @ git+https://github.com/huggingface/transformers@<commit_sha>
 accelerate==0.29.3
 huggingface-hub>=0.23.0
+sentencepiece>=0.2.0
+peft>=0.10.0
+auto-gptq==0.7.2+cu121  # или 0.7.1, если cu121-сборка только этой версии
 
-# Diffusion / Generation
+# --- Diffusion / изображения ---
 diffusers==0.30.0
 safetensors>=0.4.2
-
-# Misc.
-tqdm>=4.66
 Pillow>=11.3.0
+tqdm>=4.66
+
+# --- Qwen-VL утилиты ---
+qwen-vl-utils[decord]==0.0.8     # подтянет decord автоматически
+
+# --- Прочее ---
+gekko==1.0.7                     # явная зависимость Colab-ноутбука
