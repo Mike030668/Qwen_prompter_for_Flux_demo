@@ -7,7 +7,8 @@ numpy==1.26.4           # версия из Colab GPU
 
 # --- Hugging Face стек ---
 # ↓ если используете dev-ветку, подставьте полученный commit-hash
-transformers @ git+https://github.com/huggingface/transformers@<commit_sha>
+# transformers @ git+https://github.com/huggingface/transformers@f69d38772a627a9e8e15d60c70e189359573662b
+transformers==4.30.2
 accelerate==0.29.3
 huggingface-hub>=0.23.0
 sentencepiece>=0.2.0
