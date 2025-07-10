@@ -6,6 +6,8 @@ import torch
 from PIL import Image
 from diffusers import FluxPipeline
 
+# get sub_name used model Flux
+from ranger_generation.generator.flux_runner import SUM_NAME
 def parse_args():
     ap = argparse.ArgumentParser(
         description="Demo: from user prompt → Flux generation"
@@ -47,9 +49,9 @@ def parse_args():
 
 # Read from env
 HF_TOKEN = os.getenv("HUGGINGFACE_HUB_TOKEN", None)
-FLUX_ID   = os.getenv("FLUX_MODEL_ID", "black-forest-labs/FLUX.1-schnell")
+FLUX_ID   = os.getenv("FLUX_MODEL_ID", f"black-forest-labs/FLUX.1-{SUM_NAME}")
 LOCAL_ONLY= os.getenv("FLUX_LOCAL_ONLY", "false").lower() in ("1","true","yes")
-DTYPE     = torch.bfloat16 if "schnell" in FLUX_ID.lower() else torch.float16
+DTYPE     = torch.bfloat16 if SUM_NAME in FLUX_ID.lower() else torch.float16
 
 _PIPE: FluxPipeline | None = None
 def _get_pipe() -> FluxPipeline:

@@ -8,11 +8,11 @@ from PIL import Image
 
 # читаем из окружения
 HF_TOKEN   = os.getenv("HUGGINGFACE_HUB_TOKEN", None)
-sub_name_model = "dev" # "schnell"
-FLUX_ID    = os.getenv("FLUX_MODEL_ID", f"black-forest-labs/FLUX.1-{sub_name_model}")
+SUM_NAME = "dev" # "schnell"
+FLUX_ID    = os.getenv("FLUX_MODEL_ID", f"black-forest-labs/FLUX.1-{SUM_NAME}")
 
 LOCAL_ONLY = os.getenv("FLUX_LOCAL_ONLY", "false").lower() in ("1","true","yes")
-DTYPE      = torch.bfloat16 if sub_name_model in FLUX_ID.lower() else torch.float16
+DTYPE      = torch.bfloat16 if SUM_NAME in FLUX_ID.lower() else torch.float16
 
 _PIPE: Optional[FluxPipeline] = None
 

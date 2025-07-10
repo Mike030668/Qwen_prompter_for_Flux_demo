@@ -55,8 +55,8 @@ def main():
         print("→ querying Qwen for structured JSON …")
         struct = generate_structured_prompt(raw)
         # struct now has 'positive','negative', etc.
-        positive = struct["positive"]
-        negative = struct.get("negative","")
+        positive, negative = build_flux_prompts(struct)
+        
         # show the JSON for debug
         print("Qwen JSON:\n", json.dumps(struct, ensure_ascii=False, indent=2))
     else:
