@@ -2,6 +2,15 @@
 id: sbercat
 category: object
 
+patterns:
+  - Sbercat
+  - Sber-cat
+  - Sber Cat
+  - sbercat
+  - "Сберкот"
+
+
+
 synonyms:
   - Sbercat
   - Sber-cat
@@ -22,11 +31,6 @@ negative_boost:
   - "wrong hoodie colour, wrong eye colour"
   - "extra limbs or fingers, distorted anatomy"
   - "text, watermark, blur, JPEG artefacts"
-
-#params:
-#  width: 1024
-#  height: 1536
-# cfg: 7.5            # guidance scale
 
 # ===== Detailed reference rules (for future use) =====
 detailed_rules:

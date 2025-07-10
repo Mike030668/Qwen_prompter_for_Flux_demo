@@ -1,5 +1,13 @@
+# rules/lighting/golden_hour/golden_hour.yaml
 id: golden_hour
 category: lighting
+
+patterns: 
+  - golden hour
+  - sunset light
+  - warm sunset glow
+  - "закатный свет"
+  - "тёплый золотой час"
 
 synonyms:
   - golden hour
@@ -19,8 +27,6 @@ negative_boost:
   - "no cold fluorescent light"
   - "no studio strobe flash"
   - "no overexposed sky"
-
-params: {}            # при желании можно задать особый CFG / steps
 
 examples:
   good: "images/good/"

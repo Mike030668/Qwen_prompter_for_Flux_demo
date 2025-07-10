@@ -1,82 +1,130 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-"""
-1) из текста делаем JSON-промпт Qwen
-2) генерируем N изображений Flux (+LoRA, если указали FLUX_LORA_PATH)
-3) сохраняем одиночную картинку или grid
-"""
-
-import importlib
-# stub для accelerate.clear_device_cache — работает в любой среде
-m = importlib.import_module("accelerate.utils.memory")
-if not hasattr(m, "clear_device_cache"):
-    setattr(m, "clear_device_cache", lambda *a, **k: None)
-
-import sys, math, gc, torch, argparse
-from pathlib import Path
+#!/usr/bin/env python3
+import os
+import argparse
+import math
+import torch
 from PIL import Image
-from ranger_generation.prompter.qwen_prompter import generate_structured_prompt
-from ranger_generation.generator.flux_runner import generate_flux
-
+from diffusers import FluxPipeline
 
 def parse_args():
     ap = argparse.ArgumentParser(
-        description="Demo: текст → JSON → Flux (+LoRA) → картинка"
+        description="Demo: from user prompt → Flux generation"
     )
-    ap.add_argument("prompt", nargs="*", help="Ваш текст (если не передан, спросим через input)")
-    ap.add_argument("-n", "--num_images", type=int, default=1, help="сколько сгенерировать")
-    ap.add_argument("-W", "--width",      type=int, default=512, help="ширина")
-    ap.add_argument("-H", "--height",     type=int, default=512, help="высота")
-    ap.add_argument("-s", "--steps",      type=int, default=30, help="число шагов")
-    ap.add_argument("-g", "--scale",      type=float, default=7.5, help="guidance scale")
-    ap.add_argument("--seed",             type=int, default=1234, help="стартовый seed")
-    ap.add_argument("-o", "--output",     type=str, default="samples.png", help="выходной файл")
+    ap.add_argument(
+        "prompt", nargs="*", help="User prompt (если не передан, будет запрошен интерактивно)"
+    )
+    ap.add_argument(
+        "--num_images", "-n", type=int, default=1,
+        help="Сколько изображений сгенерировать"
+    )
+    ap.add_argument(
+        "--width", "-W", type=int, default=512,
+        help="Ширина (px)"
+    )
+    ap.add_argument(
+        "--height", "-H", type=int, default=512,
+        help="Высота (px)"
+    )
+    ap.add_argument(
+        "--steps", "-s", type=int, default=4,
+        help="Шагов инференса"
+    )
+    ap.add_argument(
+        "--scale", "-g", type=float, default=7.5,
+        help="Guidance scale"
+    )
+    ap.add_argument("--seed", type=int, default=1234, help="Base seed")
+    
+    ap.add_argument(
+        "--seeds", type=str, default=None,
+        help="Comma-separated list of seeds; overrides --seed"
+    )
+    ap.add_argument(
+        "--output", "-o", default="samples.png",
+        help="Имя выходного файла (PNG)"
+    )
     return ap.parse_args()
 
+# Read from env
+HF_TOKEN = os.getenv("HUGGINGFACE_HUB_TOKEN", None)
+FLUX_ID   = os.getenv("FLUX_MODEL_ID", "black-forest-labs/FLUX.1-schnell")
+LOCAL_ONLY= os.getenv("FLUX_LOCAL_ONLY", "false").lower() in ("1","true","yes")
+DTYPE     = torch.bfloat16 if "schnell" in FLUX_ID.lower() else torch.float16
+
+_PIPE: FluxPipeline | None = None
+def _get_pipe() -> FluxPipeline:
+    global _PIPE
+    if _PIPE is None:
+        init_kwargs = {
+            "torch_dtype": DTYPE,
+            "local_files_only": LOCAL_ONLY,
+            **({"use_auth_token": HF_TOKEN} if HF_TOKEN and not LOCAL_ONLY else {})
+        }
+        _PIPE = FluxPipeline.from_pretrained(FLUX_ID, **init_kwargs)
+        _PIPE.enable_model_cpu_offload()
+    return _PIPE
+
+def make_grid(images: list[Image.Image]) -> Image.Image:
+    """Lay out images in an (almost) square grid."""
+    count = len(images)
+    cols  = int(math.ceil(math.sqrt(count)))
+    rows  = int(math.ceil(count / cols))
+    w, h  = images[0].size
+    grid  = Image.new("RGB", (cols * w, rows * h))
+    for idx, img in enumerate(images):
+        x = (idx % cols) * w
+        y = (idx // cols) * h
+        grid.paste(img, (x, y))
+    return grid
 
 def main():
     args = parse_args()
 
-    # 1) сформировать текст
+    # build seeds list
+    if args.seeds:
+        seeds = [int(s) for s in args.seeds.split(",") if s.strip()]
+        if len(seeds) < args.num_images:
+            raise ValueError(f"You passed {len(seeds)} seeds but asked for {args.num_images} images.")
+    else:
+        seeds = [args.seed + i for i in range(args.num_images)]
+
+    # assemble prompt
     if args.prompt:
-        user_text = " ".join(args.prompt)
+        prompt = " ".join(args.prompt)
     else:
-        user_text = input("User prompt → ").strip()
+        prompt = input("Enter prompt: ").strip()
+        if not prompt:
+            print("Prompt must not be empty.")
+            return
 
-    # 2) сделать JSON-промпт через Qwen
-    prompt_json = generate_structured_prompt(user_text)
+    pipe = _get_pipe()
 
-    # выгружаем Qwen-модель
-    del generate_structured_prompt.__globals__["model"]
-    torch.cuda.empty_cache()
-    gc.collect()
+    images = []
+    for seed in seeds[: args.num_images]:
+        # create a torch.Generator with this seed
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+        gen = torch.Generator(device).manual_seed(seed)
 
-    # 3) готовим список seeds и генерируем
-    seeds = [args.seed + i for i in range(args.num_images)]
-    samples = generate_flux(
-        prompt_json["positive"],
-        seeds,
-        num_images=args.num_images,
-        width=args.width,
-        height=args.height,
-        steps=args.steps,
-        scale=args.scale,
-    )
+        out = pipe(
+            prompt,
+            guidance_scale=args.scale,
+            num_inference_steps=args.steps,
+            width=args.width,
+            height=args.height,
+            generator=gen
+        )
+        images.append(out.images[0])
+        # free up GPU between runs
+        torch.cuda.empty_cache()
 
-    # 4) сохраняем: одиночку или grid
-    if args.num_images == 1:
-        samples[0].save(args.output)
-        print(f"Saved → {args.output}")
-    else:
-        cols = min(4, args.num_images)
-        rows = math.ceil(args.num_images / cols)
-        w, h = samples[0].size
-        grid = Image.new("RGB", (w * cols, h * rows))
-        for idx, img in enumerate(samples):
-            grid.paste(img, ((idx % cols) * w, (idx // cols) * h))
+    # save
+    if len(images) > 1:
+        grid = make_grid(images)
         grid.save(args.output)
         print(f"Saved grid → {args.output}")
-
+    else:
+        images[0].save(args.output)
+        print(f"Saved image → {args.output}")
 
 if __name__ == "__main__":
     main()

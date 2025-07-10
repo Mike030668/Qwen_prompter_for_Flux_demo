@@ -1,5 +1,13 @@
+# rules/style/cinematic_photo/cinematic_photo.yaml
 id: cinematic_photo
 category: style
+
+patterns:
+  - cinematic photo
+  - cinematic look
+  - film still
+  - "киношный стиль"
+  - "кинематографичный"
 
 synonyms:
   - cinematic photo
@@ -19,9 +27,6 @@ negative_boost:
   - "no comic or cartoon style"
   - "no flat lighting"
   - "no heavy grain"
-
-params:
-  cfg: 8.0            # чуть более жёсткое следование промпту
 
 examples:
   good: "images/good/"

@@ -2,6 +2,13 @@
 id: front_view
 category: viewpoint
 
+patterns:
+  - front view
+  - head-on
+  - straight-on
+  - full-face
+  - "анфас"
+
 synonyms:
   - front view
   - head-on
@@ -21,10 +28,6 @@ negative_boost:
   - "no side profile"
   - "no tilted or Dutch angle"
   - "no face obstruction"
-
-# Переопределять параметры генерации здесь необязательно, но поле оставлено
-# на случай, если хочется задать, например, более узкую глубину резкости.
-params: {}
 
 # Папки с эталонными изображениями (вы добавите файлы сами)
 examples:

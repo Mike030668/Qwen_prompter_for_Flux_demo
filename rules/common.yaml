@@ -2,6 +2,8 @@
 id: common
 category: common          # зарезервированная метка для root-правил
 
+patterns: []         # applies unconditionally
+
 # --- 1. Global negative prompt ---------------------------------------------
 # Общие «стоп-слова», которые добавляются к каждому запросу,
 # если объект / стиль не прописали другое.
@@ -37,16 +39,7 @@ global_negative:
   - "gore"
   - "violence"
 
-# --- 2. Default generation parameters --------------------------------------
-# Подойдут для Flux v1: вертикальный портрет, высокое качество, 4 шагa.
-default_params:
-  width:   1024        # px
-  height:  1536        # px
-  cfg:     7.5         # guidance scale
-  steps:   4           # diffusion steps
-  sampler: "ddim"      # можно заменить в дочерних правилах
-
-# --- 3. Service information -------------------------------------------------
+# --- 2. Service information -------------------------------------------------
 notes: |
   This file acts as a global safety net:
   – Every positive/negative prompt assembled by Qwen-Prompter starts with
