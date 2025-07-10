@@ -6,13 +6,9 @@ import torch
 from PIL import Image
 from diffusers import FluxPipeline
 
-<<<<<<< HEAD
 # get sub_name used model Flux
 from ranger_generation.generator.flux_runner import SUM_NAME
-=======
-# take type flux
-from ranger_generation.generator.flux_runner import SUB_MODEL
->>>>>>> 00b2c93 (ch)
+
 def parse_args():
     ap = argparse.ArgumentParser(
         description="Demo: from user prompt → Flux generation"
