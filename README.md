@@ -1,124 +1,154 @@
+# Range\_Gen\_Image
 
-# ranger_generation
-
-End-to-end pipeline:
-
-1. **Qwen-Prompter** 👉 generates structured JSON (positive / negative / params)
-2. **Flux 1** 👉 text-to-image (multiple seeds, dynamic batching)
-3. **SigLIP-2** 👉 scores & ranks images (coming next)
+Набор скриптов и модулей для управления генерацией изображений с помощью Qwen-VL → JSON → Flux (с поддержкой negative prompt, двойного CFG, CLIP+T5).
 
 ---
 
-## 1. Quick install (CUDA 12.1 GPU)
+## 📋 Содержание
+
+* [Требования](#-требования)
+* [Установка](#-установка)
+
+  * [Локально](#локально)
+  * [RunPod](#runpod)
+* [Аутентификация HF](#-аутентификация-hf)
+* [Примеры использования](#-примеры-использования)
+* [Структура проекта](#-структура-проекта)
+* [Дальнейшее развитие](#-дальнейшее-развитие)
+
+---
+
+## 🔧 Требования
+
+* Python **3.8–3.11**
+* CUDA **11.8** (рекомендуется для GPU-ускорения)
+* Git
+
+---
+
+## ⚙️ Установка
+
+### Локально
 
 ```bash
-python -m venv .venv && source .venv/bin/activate          # or use conda/mamba
-uv pip install --upgrade pip                                # optional but fast
-uv pip install -r requirements.txt
-````
+git clone https://github.com/Mike030668/ranger_generation.git
+cd ranger_generation
+python3 -m venv .venv
+source .venv/bin/activate        # Linux/macOS
+.\.venv\Scripts\activate         # Windows
+pip install --upgrade pip
+pip install -r requirements.txt
+pip install -e .
+```
 
-> • For inference on CPU only, drop the `+cu121` wheels and install plain
-> `torch==2.3.0 torchvision==0.18.0` (much slower).
-> • Tested on Ubuntu 22.04, Py 3.10.18, RTX 4090 + driver 576, CUDA 12.9.
+### RunPod
+
+```bash
+git clone https://github.com/Mike030668/ranger_generation.git
+cd Control_Edit_Gen_Image
+conda create -n flux_gen python=3.11 -y
+conda activate flux_gen
+pip install --upgrade pip
+pip install -r requirements.txt
+pip install -e .
+```
+
+> **Важно:** если используется CUDA не 11.8, замените URL в `requirements.txt` на соответствующий.
 
 ---
 
-## 2. Hugging Face authentication
-
-Flux checkpoints are gated.
-Create a **read** token on [https://huggingface.co/settings/tokens](https://huggingface.co/settings/tokens) and run:
+## 🔒 Аутентификация HF
 
 ```bash
 huggingface-cli login
-# or
-export HUGGINGFACE_HUB_TOKEN=hf_********************************
 ```
 
 ---
 
-## 3. First-run demo
+## 🚀 Примеры использования
 
-```bash
-python scripts/demo_prompt.py "Хочу Сберкота анфас..."
-python scripts/demo_flux.py   "Хочу Сберкота анфас..."
-xdg-open samples.png          # (or open in your OS)
-```
+1. **Prompt with Qwen**
 
-The first call downloads ≈ 10 GB of Flux weights; afterwards each run is instant.
+   ```bash
+   python -m scripts.demo_qwen \
+     --prompt "A front-view portrait of a vintage car in cinematic color grading during golden hour" \
+     --output outputs/qwen_prompt.json
+   ```
 
----
+   *Выводит JSON-структуру с полями ****************`positive`****************, ****************`negative`**************** и деталями.*
 
-## 4. Using LoRA / QLoRA adapters with Flux 1
+2. **Чистый Flux**
 
-```bash
-# ① Place adapter folder inside ./checkpoints or any path
-export LORA_PATH=/path/to/my_cinematic_lora
+   ```bash
+   python -m scripts.demo_flux \
+     --prompt "A front-view portrait of a vintage car in cinematic color grading during golden hour" \
+     --num_images 4 \
+     --width 512 --height 512 \
+     --steps 20 \
+     --scale 3.0 \
+     --seeds 42 100 256 \
+     --output outputs/flux_only
+   ```
 
-# ② Enable LoRA loading in flux_runner.py
-from diffusers.loaders import FluxLoraLoaderMixin
-pipe = FluxPipeline.from_pretrained(
-    FLUX_ID,
-    torch_dtype=torch.float16,
-    lora_loader=FluxLoraLoaderMixin.from_pretrained(LORA_PATH),
-    ...
-)
-```
+3. **Qwen → Flux**
 
-*If you need to **train** a new adapter:*
+   ```bash
+   python -m scripts.demo_qwen_flux \
+     --prompt "A front-view portrait of a vintage car in cinematic color grading during golden hou" \
+     --use_qwen \
+     --no_negative \
+     --num_images 4 \
+     --width 512 --height 512 \
+     --steps 20 \
+     --scale 3.0 \
+     --seeds 42 100 256 \
+     --output outputs/qwen_flux
+   ```
 
-```bash
-# example: DreamBooth-style fine-tune
-accelerate launch train_lora.py \
-  --pretrained_model_name_or_path black-forest-labs/FLUX.1-schnell \
-  --instance_data_dir ./my_dataset --output_dir ./my_lora \
-  --resolution 1024 --train_text_encoder --mixed_precision fp16
-```
+4. **Qwen → Flux (+ negative prompt)**
 
----
+   ```bash
+   python -m scripts.demo_qwen_flux \
+     --prompt "A front-view portrait of a vintage car in cinematic color grading during golden hou" \
+     --use_qwen \
+     --use_negative \
+     --num_images 4 \
+     --width 512 --height 512 \
+     --steps 20 \
+     --scale 3.0 \
+     --seeds 42 100 256 \
+     --output outputs/qwen_flux_neg
+   ```
 
-## 5. Known issues & patches
-
-| Symptom                               | Fix                                                                                                                                                     |
-| ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `ImportError: clear_device_cache`     | Patched at runtime: the first lines of `ranger_generation/prompter/qwen_prompter.py` add a stub to `accelerate.utils.memory` for any accelerate ≥ 0.25. |
-| `xFormers can't load C++/CUDA`        | Rebuild xformers against your Torch (see above) *or* ignore (pipeline works without memory-efficient attention).                                        |
-| AutoGPTQ “CUDA kernels not installed” | Optional speed-up; compile with `python -m auto_gptq.cuda_setup install` if desired.                                                                    |
-
----
-
-*Happy generating!*
-
-```
-
-
-## 6 Как подключить ваш LoRA-адаптер
-Подготовьте или обучите LoRA-веса (например, через ai-toolkit и train_lora_flux_24gb.yaml).
-
-Положите my_lora.safetensors куда угодно на диск.
-
-Перед запуском демо-скрипта установите переменную окружения:
-
-bash
-Копировать
-Редактировать
-export FLUX_LORA_PATH=/путь/к/my_lora.safetensors
-Запускайте:
-
-bash
-Копировать
-Редактировать
-python scripts/demo_flux.py "Ваш запрос" \
-  --num_images 4 --width 512 --height 512 --steps 15 --scale 7.5 \
-  --output my_out.png
-— в результате LoRA-адаптер автоматически загрузится в FluxPipeline.
-
+> Во 2–4 вариантах флаг `--seeds` позволяет передавать список семян для параллельной генерации.
 
 ---
 
-### Next steps
+## 📂 Структура проекта
 
-* When SigLIP-2 ranking is ready, add its runtime dependency (`siglip2` or custom scorer) and update the README.  
-* Consider wrapping `scripts/demo_flux.py` into a FastAPI endpoint for easy integration.
-
-Let me know if you’d like any tweaks!
 ```
+ranger_generation/
+├── ranger_generation/       # Пакет с основными модулями
+│   ├── prompter/            # Парсер и сборщик JSON-промтов
+│   └── generator/           # FluxRunner с CLIP+T5, CFG, negative
+├── scripts/
+│   ├── demo_qwen.py         # Вывод JSON через Qwen
+│   ├── demo_flux.py         # Запуск чистого Flux
+│   └── demo_qwen_flux.py    # Запуск Qwen → Flux (+ negative)
+├── tests/                   # (в разработке) автотесты
+├── rules/                   # YAML-файлы правил (common, lighting, objects…)
+├── requirements.txt         # Все зависимости, включая PyTorch+CUDA
+├── setup.py                 # Editable-модуль
+└── README.md                # Вы читаете :)
+```
+
+---
+
+## 🛠 Дальнейшее развитие
+
+* Сбор и аналитика метрик качества без/с Qwen и negative
+* Интеграция SigLIP-2 для ранжирования
+* REST/GRPC-обёртка (FastAPI) для продакшена
+* Покрытие тестами парсера правил, сборщика промтов и FluxRunner
+
+---

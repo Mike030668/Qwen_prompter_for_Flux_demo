@@ -1,9 +1,6 @@
 ranger_generation/
-    ├─ prompter/
-    │       ├─ qwen_prompter.py
+    ├─ ranger_generation/
     ├─ scripts/
-    │       ├─ validate_rules.py
-    │       ├─ demo_prompt.py
     └─ rules/
         ├─ objects/                # контролируемые объекты (люди, маскоты, бренды…)
         │   ├─ sbercat/
