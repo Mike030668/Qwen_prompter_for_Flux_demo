@@ -45,7 +45,7 @@ pip install -e .
 
 ```bash
 git clone https://github.com/Mike030668/ranger_generation.git
-cd Control_Edit_Gen_Image
+cd ranger_generation
 conda create -n flux_gen python=3.11 -y
 conda activate flux_gen
 pip install --upgrade pip
