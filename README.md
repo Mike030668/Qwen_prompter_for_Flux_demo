@@ -53,6 +53,9 @@ pip install -r requirements.txt
 pip install -e .
 ```
 
+### Colab
+
+projects/ranger_generation/notebooks/Flux_Qwen_colab.ipynb
 > **Важно:** если используется CUDA не 11.8, замените URL в `requirements.txt` на соответствующий.
 
 ---

@@ -35,7 +35,8 @@ def generate_flux(
     width: int = 512,
     height: int = 512,
     steps: int = 4,
-    scale: float = 7.5,
+    scale: float = 3.5,
+    max_sequence_length = 512,
     negative_prompt: Optional[str] = None,
     true_cfg_scale: float = 1.5,  # >1.0 → жёсткое true-CFG, =1.0 → soft-CFG
 ) -> List[Image.Image]:
@@ -57,6 +58,7 @@ def generate_flux(
             "guidance_scale":      scale,
             "true_cfg_scale":      true_cfg_scale,
             "num_inference_steps": steps,
+            "max_sequence_length": max_sequence_length,
             "height":              height,
             "width":               width,
             "generator":           gen,
