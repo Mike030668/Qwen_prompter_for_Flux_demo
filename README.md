@@ -31,8 +31,8 @@
 ### Локально
 
 ```bash
-git clone https://github.com/Mike030668/ranger_generation.git
-cd ranger_generation
+git clone https://github.com/Mike030668/Qwen_prompter_for_Flux_demo.git
+cd Qwen_prompter_for_Flux_demo
 python3 -m venv .venv
 source .venv/bin/activate        # Linux/macOS
 .\.venv\Scripts\activate         # Windows
@@ -44,8 +44,8 @@ pip install -e .
 ### RunPod
 
 ```bash
-git clone https://github.com/Mike030668/ranger_generation.git
-cd ranger_generation
+git clone https://github.com/Mike030668/Qwen_prompter_for_Flux_demo.git
+cd Qwen_prompter_for_Flux_demo
 conda create -n flux_gen python=3.11 -y
 conda activate flux_gen
 pip install --upgrade pip
@@ -55,7 +55,7 @@ pip install -e .
 
 ### Colab
 
-projects/ranger_generation/notebooks/Flux_Qwen_colab.ipynb
+projects/Qwen_prompter_for_Flux_demo/notebooks/Flux_Qwen_colab.ipynb
 > **Важно:** если используется CUDA не 11.8, замените URL в `requirements.txt` на соответствующий.
 
 ---
