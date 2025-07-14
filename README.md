@@ -1,4 +1,4 @@
-# Range\_Gen\_Image
+# Qwen\_Gen\_Image
 
 Набор скриптов и модулей для управления генерацией изображений с помощью Qwen-VL → JSON → Flux (с поддержкой negative prompt, двойного CFG, CLIP+T5).
 
