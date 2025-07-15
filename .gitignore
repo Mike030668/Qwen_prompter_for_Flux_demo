@@ -1,3 +1,13 @@
+# node.js / TS
+node_modules/
+package-lock.json
+.cache/
 
-# локальные секреты
-*hf_token*.txt
+# VSCode
+.vscode/
+
+# Системные и личные
+.DS_Store
+.bash_history
+motd_shown
+deviceid
